@@ -1,4 +1,4 @@
-#Compensation ideas
+#Compensation for TDH3 by TDH2 and 1
 library(ggplot2)
 library(data.table)
 library(dplyr)
@@ -10,6 +10,7 @@ THEMEMAIN <- function() {
   #theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank())
 }
 
+#Data already analyzed as published in Vande Zande, Hill, and Wittkopp (2022)
 load("~/Documents/Output/Projects/Pleiotropy/DEworkspace/separatenooutlierspostcontrast.RData")
 figdir <- "/Users/petravandezande/Documents/Figures/Projects/Pleiotropy/Compensation" #Directory for figure output
 outputdir <- "/Users/petravandezande/Documents/Output/Projects/Pleiotropy/Compensation" #Directory for file output
@@ -32,69 +33,6 @@ ggplot(data = Paralogsindel, aes(x = Gene, y = 2^log2FoldChange)) +
   geom_hline(yintercept = 1)
 ggsave("TDH3delexp.pdf", plot = last_plot(), path = figdir, width = 4, height = 7)
 
-#Expression using CPM values
-# TDH1cpms <- c((countsmatrix["YJL052W","X120000"]/sum(countsmatrix[,"X120000"])*1000000))
-# TDH2cpms <- c((countsmatrix["YJR009C","X120000"]/sum(countsmatrix[,"X120000"])*1000000))
-# TDH3cpms <- c((countsmatrix["YGR192C","X120000"]/sum(countsmatrix[,"X120000"])*1000000))
-# 
-# TDH2cpms <- c((countsallauram["YJR009C",]/colSums(countsallauram)*1000000))
-# TDH3cpms <- c((countsallauram["YGR192C",]/colSums(countsallauram)*1000000))
-# TDH1cpms <- c((countsallauram["YJL052W",]/colSums(countsallauram)*1000000))
-# 
-# TDH1cpmsdf <- samples[samples$condition %in% c("C","TT"),]
-# TDH1cpmsdf$SampleID <- as.character(TDH1cpmsdf$SampleID)
-# for (i in 1:nrow(TDH1cpmsdf)) {
-#   TDH1cpmsdf[i,"TDH1"] <- TDH1cpms[TDH1cpmsdf[i,"SampleID"]]
-#   TDH1cpmsdf[i,"TDH2"] <- TDH2cpms[TDH1cpmsdf[i,"SampleID"]]
-#   TDH1cpmsdf[i,"TDH3"] <- TDH3cpms[TDH1cpmsdf[i,"SampleID"]]
-# }
-# TDH1cpmsdf$condition <- factor(TDH1cpmsdf$condition, levels = c("TT","C"))
-# ggplot(data = TDH1cpmsdf, aes(x = condition, y = TDH3)) +
-#   geom_point(size = 5, color = "#de6600") +
-#   THEMEMAIN() +
-#   xlab("") +
-#   ylab("") +
-#   theme(axis.text.x = element_blank(), plot.margin = unit(c(0,0,0,0),"cm"))
-# ggsave("TDH3cpms.pdf", plot = last_plot(), path = figdir, width = 2, height = 7)
-# 
-# ggplot(data = TDH1cpmsdf, aes(x = condition, y = TDH2)) +
-#   geom_point(size = 5, color = "#003f5a") +
-#   THEMEMAIN() +
-#   xlab("") +
-#   ylab("") +
-#   theme(axis.text.x = element_blank(), plot.margin = unit(c(0,0,0,0),"cm"))
-# ggsave("TDH2cpms.pdf", plot = last_plot(), path = figdir, width = 2, height = 7)
-# 
-# ggplot(data = TDH1cpmsdf, aes(x = condition, y = TDH1)) +
-#   geom_point(size = 5, color = "#007a7a") +
-#   THEMEMAIN() +
-#   xlab("") +
-#   ylab("") +
-#   theme(axis.text.x = element_blank(), plot.margin = unit(c(0,0,0,0),"cm"))
-# ggsave("TDH1cpms.pdf", plot = last_plot(), path = figdir, width = 2, height = 7)
-
-#Fitness
-# growthdir <- "/Users/petravandezande/Documents/Output/Projects/Pleiotropy/Growthrate"
-# growthstats <- read.table(paste0(growthdir,"/Combstats.txt"), sep = "\t", header = 1) 
-# dir2 <- "/Users/petravandezande/Documents" #Directory containing the document with the Nameskey
-# Nameskey <- read.table(paste0(dir2,"/Nameskey.txt"), sep = "\t", header = 1, stringsAsFactors = FALSE)
-# Nameskey$COLLECTION <- as.character(Nameskey$COLLECTION)
-# #getting rid of the empty control columns
-# growthstats <- growthstats[!growthstats$COLLECTION %in% c(30161,30162,30163),]
-# for (i in 1:nrow(growthstats)) {
-#   growthstats[i,"condition"] <- Nameskey[Nameskey$COLLECTION == growthstats[i,"COLLECTION"], "CONDITION"]
-#   growthstats[i,"nickname"] <- Nameskey[Nameskey$COLLECTION == growthstats[i,"COLLECTION"], "NICKNAME"]
-# }
-# growth <- growthstats[growthstats$condition %in% paralogsamplesvec,]
-# growth$Deletion <- c("TDH3del","TDH1del","TDH2/3del","TDH2del")
-# growth$Deletion <- factor(growth$Deletion, levels = c("TDH1del","TDH2del","TDH3del","TDH2/3del"))
-# ggplot(data = growth, aes(x = Deletion, y = REL.r.u)) +
-#   geom_point(size = 5) +
-#   geom_errorbar(aes(ymin = REL.r.lower, ymax = REL.r.upper)) +
-#   THEMEMAIN() +
-#   ylab("Growth Rate\n(Relative to Wild Type)") +
-#   xlab("Paralog Deletion Strain")
-# ggsave("DelGrowth.pdf", plot = last_plot(), path = figdir, width = 6, height = 8)
 
 #Looking at dosage changes over different levels of TDH3 change
 inallsets <- rownames(C)[which(rownames(C) %in% rownames(MM))]
@@ -192,20 +130,6 @@ ggplot(data = Paraplot[Paraplot$Gene %in% c("TDH3","pTDH3-YFP"),], aes(x = 2^var
   scale_color_manual(values = c("#de6600","#fea02f")) +
   labs(shape = "Gene")
 ggsave("YFPtitr.pdf", plot = last_plot(), path = figdir, width = 6, height = 6)
-
-# ggplot(data = Paraplot[Paraplot$Gene == "TDH3",], aes(x = variable, y = 2^value, group = Gene)) +
-#   geom_point(color = "#de6600", size = 5, alpha = 0.8) +
-#   geom_pointrange(aes(ymin = 2^(value - sevalue), ymax = 2^(value + sevalue)), color = "#de6600") +
-#   THEMEMAIN() +
-#   xlab("TDH3 Expression Mutant") +
-#   ylab("Fold Change\n(Relative to Wild Type)") +
-#   #ylim(0,2.75) +
-#   geom_hline(yintercept = 1) +
-#   theme(legend.text=element_text(size=15), axis.text = element_text(size = 15), plot.margin = unit(c(0,0,0,0),"cm")) +
-#   geom_line(colour = "#de6600")
-# #scale_color_manual(values = c("#007a7a","#003f5a","#de6600","#fea02f")) +
-# #labs(color = "Gene")
-# ggsave("TDH3titr.pdf", plot = last_plot(), path = figdir, width = 5, height = 6)
 
 #TFs
 RAP1 <- Cislogfcs["YNL216W",]
@@ -334,78 +258,6 @@ ggplot(data = TFplot2, aes(x = 2^TDH3, y = 2^TFplot2[,5])) +
   xlab("TDH3 Expression\nin RAP1/GCR1 mutants")
 ggsave("YFPinGRmuts.pdf", plot = last_plot(), path = figdir, width = 7, height = 7)
 
-#The above plotted according to growth rate to see if TDH1 expression follows (had to re-read in growthstats)
-growthdir <- "/Users/petravandezande/Documents/Output/Projects/Pleiotropy/Growthrate"
-growthstats <- read.table(paste0(growthdir,"/Combstats.txt"), sep = "\t", header = 1, stringsAsFactors = FALSE)
-dir2 <- "/Users/petravandezande/Documents" #Directory containing the document with the Nameskey
-Nameskey <- read.table(paste0(dir2,"/Nameskey.txt"), sep = "\t", header = 1, stringsAsFactors = FALSE)
-Nameskey$COLLECTION <- as.character(Nameskey$COLLECTION)
-#getting rid of the empty control columns
-growthstats <- growthstats[!growthstats$COLLECTION %in% c(30161,30162,30163),]
-for (i in 1:nrow(growthstats)) {
-  growthstats[i,"condition"] <- Nameskey[Nameskey$COLLECTION == growthstats[i,"COLLECTION"], "CONDITION"]
-  growthstats[i,"nickname"] <- Nameskey[Nameskey$COLLECTION == growthstats[i,"COLLECTION"], "NICKNAME"]
-}
-
-TFplot2$Strain <- as.character(TFplot2$Strain)
-for (i in 1:nrow(TFplot2)) {
-  TFplot2[i,"REL.r.u"] <- growthstats[growthstats$condition == TFplot2[i,"Strain"],"REL.r.u"]
-  TFplot2[i,"REL.r.upper"] <- growthstats[growthstats$condition == TFplot2[i,"Strain"],"REL.r.upper"]
-  TFplot2[i,"REL.r.lower"] <- growthstats[growthstats$condition == TFplot2[i,"Strain"],"REL.r.lower"]
-}
-ggplot(data = TFplot2, aes(x = REL.r.u, y = 2^TDH1)) +
-  geom_point(aes(shape = TFID), color = "#007a7a", size = 5) +
-  geom_pointrange(aes(ymax = 2^(TDH1 + TDH1se), ymin = 2^(TDH1-TDH1se)), color = "#007a7a") +
-  geom_errorbarh(aes(xmax = REL.r.upper, xmin = REL.r.lower), color = "#007a7a") +
-  THEMEMAIN() +
-  ylab("TDH1 Fold Change\n(Relative to Wild Type)") +
-  xlab("Growth Rate\n(Relative to Wild Type)") +
-  geom_hline(yintercept = 1) +
-  geom_vline(xintercept = 1) +
-  labs(shape = "")
-ggsave("TDH1TFsgrowth.pdf", plot = last_plot(), path = figdir, width = 7, height = 7)
-# 
-# #RAP1 separately
-# ggplot(data = TFdf[TFdf$Strain %in% RAP1strains,], aes(x = REL.r.u, y = TDH2, label = Strain)) +
-#   geom_point(color = "green", size = 5) +
-#   geom_point(aes(x = REL.r.u, y = TDH1), color = "pink", size = 5)+
-#   geom_point(aes(x = REL.r.u, y = TFdf[TFdf$Strain %in% RAP1strains,5]), color = "purple", size = 5) +
-#   geom_point(aes(x = REL.r.u, y = TDH3), color = "blue", size = 5) +
-#   THEMEMAIN() +
-#   ylab("Paralog Expression") +
-#   xlab("Relative Growth Rate")
-# ggsave("ParalogsRAP1growth.pdf", plot = last_plot(), path = figdir, width = 7, height = 8)
-# 
-# ggplot(data = TFdf[TFdf$Strain %in% RAP1strains,], aes(x = TDH3, y = TDH2, label = Strain)) +
-#   geom_point(color = "green", size = 5) +
-#   geom_point(aes(x = TDH3, y = TDH1), color = "pink", size = 5)+
-#   geom_point(aes(x = TDH3, y = TFdf[TFdf$Strain %in% RAP1strains,5]), color = "purple", size = 5) +
-#   geom_point(aes(x = TDH3, y = TDH3), color = "blue", size = 5) +
-#   THEMEMAIN() +
-#   ylab("Paralog Expression") +
-#   xlab("TDH3 Expression")
-# ggsave("ParalogsRAP1.pdf", plot = last_plot(), path = figdir, width = 7, height = 8)
-# 
-# #GCR1 separately
-# ggplot(data = TFdf[TFdf$Strain %in% GCR1strains,], aes(x = REL.r.u, y = TDH2, label = Strain)) +
-#   geom_point(color = "green", size = 5) +
-#   geom_point(aes(x = REL.r.u, y = TDH1), color = "pink", size = 5)+
-#   geom_point(aes(x = REL.r.u, y = TFdf[TFdf$Strain %in% GCR1strains,5]), color = "purple", size = 5) +
-#   geom_point(aes(x = REL.r.u, y = TDH3), color = "blue", size = 5) +
-#   THEMEMAIN() +
-#   ylab("Paralog Expression") +
-#   xlab("Relative Growth Rate")
-# ggsave("ParalogsGCR1growth.pdf", plot = last_plot(), path = figdir, width = 7, height = 8)
-# 
-# ggplot(data = TFdf[TFdf$Strain %in% GCR1strains,], aes(x = TDH3, y = TDH2, label = Strain)) +
-#   geom_point(color = "green", size = 5) +
-#   geom_point(aes(x = TDH3, y = TDH1), color = "pink", size = 5)+
-#   geom_point(aes(x = TDH3, y = TFdf[TFdf$Strain %in% GCR1strains,5]), color = "purple", size = 5) +
-#   geom_point(aes(x = TDH3, y = TDH3), color = "blue", size = 5) +
-#   THEMEMAIN() +
-#   ylab("Paralog Expression") +
-#   xlab("TDH3 Expression")
-# ggsave("ParalogsGCR1.pdf", plot = last_plot(), path = figdir, width = 7, height = 8)
 
 #Looking at other metabolic genes
 PGK1 <- Cislogfcs["YCR012W",]
