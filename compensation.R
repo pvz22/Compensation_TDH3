@@ -1,19 +1,21 @@
-#Compensation for TDH3 by TDH2 and 1
+#Script generating figures for compensation for TDH3 by TDH2
+#Libraries needed
 library(ggplot2)
 library(data.table)
 library(dplyr)
-
+#clearing environment
 rm(list = ls())
+#ggplot theme
 THEMEMAIN <- function() {
   theme_bw() +
     theme(legend.text=element_text(size=20), axis.text = element_text(size = 20), axis.title = element_text(size = 25), plot.margin = unit(c(2,1,1,1),"cm"), plot.title = element_text(size = 25, hjust = 0.5))
   #theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank())
 }
+#Data already analyzed as published in Vande Zande, Hill and Wittkopp (2022)
+load("/DEworkspace/separatenooutlierspostcontrast.RData")
 
-#Data already analyzed as published in Vande Zande, Hill, and Wittkopp (2022)
-load("~/Documents/Output/Projects/Pleiotropy/DEworkspace/separatenooutlierspostcontrast.RData")
-figdir <- "/Users/petravandezande/Documents/Figures/Projects/Pleiotropy/Compensation" #Directory for figure output
-outputdir <- "/Users/petravandezande/Documents/Output/Projects/Pleiotropy/Compensation" #Directory for file output
+figdir <- "" #Directory for figure output
+outputdir <- "" #Directory for file output
 
 cissamplesvec <- c("C","B","GG","M","MM")
 paralogsamplesvec <- c("F","FF","C","K")
@@ -130,6 +132,7 @@ ggplot(data = Paraplot[Paraplot$Gene %in% c("TDH3","pTDH3-YFP"),], aes(x = 2^var
   scale_color_manual(values = c("#de6600","#fea02f")) +
   labs(shape = "Gene")
 ggsave("YFPtitr.pdf", plot = last_plot(), path = figdir, width = 6, height = 6)
+
 
 #TFs
 RAP1 <- Cislogfcs["YNL216W",]
@@ -259,14 +262,19 @@ ggplot(data = TFplot2, aes(x = 2^TDH3, y = 2^TFplot2[,5])) +
 ggsave("YFPinGRmuts.pdf", plot = last_plot(), path = figdir, width = 7, height = 7)
 
 
-#Looking at other metabolic genes
+#Looking at other glycolytic genes
 PGK1 <- Cislogfcs["YCR012W",]
 PFK2 <- Cislogfcs["YMR205C",]
 ENO1 <- Cislogfcs["YGR254W",]
 TDH3 <- Cislogfcs["YGR192C",]
-TFs <- data.frame(rbind(PGK1, PFK2, ENO1, TDH3))
-TFs$Gene <- c("PGK1","PFK2","ENO1","TDH3")
-TFs$Gene <- factor(TFs$Gene, levels = c("PGK1","PFK2","ENO1","TDH3"))
+PFK1 <- Cislogfcs["YGR240C",]
+ENO2 <- Cislogfcs["YHR174W",]
+TPI1 <- Cislogfcs["YDR050C",]
+FBA1 <- Cislogfcs["YKL060C",]
+GPM1 <- Cislogfcs["YKL152C",]
+TFs <- data.frame(rbind(PFK1, ENO2, TPI1, FBA1, GPM1, TDH3, PGK1, PFK2, ENO1))
+TFs$Gene <- c("PFK1","ENO2","TPI1","FBA1","GPM1","TDH3","PGK1","PFK2","ENO1")
+TFs$Gene <- factor(TFs$Gene)
 colnames(TFs) <- c(TDH3,"Gene")
 TFsm <- melt(TFs)
 TFsm$variable <- as.numeric(as.character(TFsm$variable))
@@ -275,108 +283,20 @@ PGK1 <- Cisses["YCR012W",]
 PFK2 <- Cisses["YMR205C",]
 ENO1 <- Cisses["YGR254W",]
 TDH3 <- Cisses["YGR192C",]
-TFses <- data.frame(rbind(PGK1, PFK2, ENO1, TDH3))
-TFses$Gene <- c("PGK1","PFK2","ENO1","TDH3")
-TFses$Gene <- factor(TFses$Gene, levels = c("PGK1","PFK2","ENO1","TDH3"))
-colnames(TFses) <- c(0,20,50,85,135,"Gene")
-TFsesm <- melt(TFses)
-Tfplot <- cbind(TFsm, sevalues = TFsesm$value)
-
-ggplot(data = Tfplot, aes(x = 2^variable, y = 2^value, group = Gene)) +
-  #geom_point(aes(colour = Gene, shape = Gene), size = 5, alpha = 0.8) +
-  geom_pointrange(aes(ymin = 2^(value - sevalues), ymax = 2^(value + sevalues), color = Gene, shape = Gene), size = 1.5) +
-  scale_shape_manual(values = c(15,16,17,1)) +
-  THEMEMAIN() +
-  xlab("TDH3 Expression Mutant") +
-  ylab("Expression Fold Change\nRelative to Wild Type") +
-  geom_line(aes(colour = Gene)) +
-  geom_hline(yintercept = 1) +
-  scale_color_manual(values = c("deepskyblue4","deepskyblue3","deepskyblue","black")) +
-  labs(color = "Gene", shape = 'Gene')
-ggsave("glycoplot.pdf", plot = last_plot(), path = figdir, width = 8, height = 8)
-
-#Now looking at these expression in GCR1/RAP1 mutants
-TFs <- c(RAP1strains, GCR1strains)
-TFdf <- data.frame(Strain = TFs)
-TFdf$Strain <- as.character(TFdf$Strain)
-for (i in 1:nrow(TFdf)) {
-  TFdf[i,"TDH3"] <- get(TFdf[i,"Strain"])["YGR192C","log2FoldChange"]
-  TFdf[i,"PGK1"] <- get(TFdf[i,"Strain"])["YCR012W","log2FoldChange"]
-  TFdf[i,"ENO1"] <- get(TFdf[i,"Strain"])["YGR254W","log2FoldChange"]
-  TFdf[i,"PFK2"] <- get(TFdf[i,"Strain"])["YMR205C","log2FoldChange"]
-}
-
-TFses <- data.frame(Strain = TFs)
-TFses$Strain <- as.character(TFses$Strain)
-for (i in 1:nrow(TFses)) {
-  TFses[i,"TDH3se"] <- get(TFses[i,"Strain"])["YGR192C","lfcSE"]
-  TFses[i,"PGK1se"] <- get(TFses[i,"Strain"])["YCR012W","lfcSE"]
-  TFses[i,"ENO1se"] <- get(TFses[i,"Strain"])["YGR254W","lfcSE"]
-  TFses[i,"PFK2se"] <- get(TFses[i,"Strain"])["YMR205C","lfcSE"]
-}
-TFplot2 <- inner_join(TFdf, TFses, by = "Strain")
-TFplot2$TFID <- c(rep("RAP1",4), rep("GCR1",5))
-
-ggplot(data = TFplot2, aes(x = 2^TDH3, y = 2^PGK1)) +
-  #geom_point(aes(x = 2^TDH3, y = 2^TFplot2[,5]), color = "deepskyblue3", size = 5, alpha = 0.7) +
-  geom_pointrange(aes(x = 2^TDH3, y = 2^PFK2, ymin = 2^(PFK2 - PFK2se), ymax = 2^(PFK2 + PFK2se), shape = TFID),color = "deepskyblue3", size = 1.5) +
-  geom_pointrange(aes(x = 2^TDH3, y = 2^ENO1, ymin = 2^(ENO1 - ENO1se), ymax = 2^(ENO1 + ENO1se), shape = TFID),color = "deepskyblue", size = 1.5) +
-  geom_pointrange(aes(x = 2^TDH3, y = 2^PGK1, ymin = 2^(PGK1 - PGK1se), ymax = 2^(PGK1 + PGK1se), shape = TFID),color = "deepskyblue4", size = 1.5) +
-  #geom_point(aes(x = 2^TDH3, y = 2^TDH3), color = "#de6600", size = 5, alpha = 0.7) +
-  #geom_pointrange(aes(x = 2^TDH3, ymin = 2^(TDH3 - TDH3se), ymax = 2^(TDH3 + TDH3se)),color = "#de6600") +
-  scale_shape_manual(values = c(2,15)) +
-  geom_abline(intercept = 0, slope = 1) +
-  geom_vline(xintercept = 1) +
-  geom_hline(yintercept = 1) +
-  THEMEMAIN() +
-  theme(legend.position = c(0.2,0.8), legend.title = element_text(size = 20)) +
-  labs(shape = "Mutant") +
-  ylab("Expression Fold Change\nRelative to Wild Type") +
-  xlab("TDH3 Expression\nin RAP1/GCR1 mutants")
-ggsave("glycoinTFs.pdf", plot = last_plot(), path = figdir, width = 6, height = 8)
-
-#Glycolytic genes that do not show this pattern
-PFK1 <- Cislogfcs["YGR240C",]
-ENO2 <- Cislogfcs["YHR174W",]
-TPI1 <- Cislogfcs["YDR050C",]
-FBA1 <- Cislogfcs["YKL060C",]
-GPM1 <- Cislogfcs["YKL152C",]
-TDH3 <- Cislogfcs["YGR192C",]
-TFs <- data.frame(rbind(PFK1, ENO2, TPI1, FBA1, GPM1, TDH3))
-TFs$Gene <- c("PFK1","ENO2","TPI1","FBA1","GPM1","TDH3")
-TFs$Gene <- factor(TFs$Gene, levels = c("PFK1","ENO2","TPI1","FBA1","GPM1","TDH3"))
-colnames(TFs) <- c(TDH3,"Gene")
-TFsm <- melt(TFs)
-TFsm$variable <- as.numeric(as.character(TFsm$variable))
-
 PFK1 <- Cisses["YGR240C",]
 ENO2 <- Cisses["YHR174W",]
 TPI1 <- Cisses["YDR050C",]
 FBA1 <- Cisses["YKL060C",]
 GPM1 <- Cisses["YKL152C",]
-TDH3 <- Cisses["YGR192C",]
-TFses <- data.frame(rbind(PFK1, ENO2, TPI1, FBA1, GPM1, TDH3))
-TFses$Gene <- c("PFK1","ENO2","TPI1","FBA1","GPM1","TDH3")
-TFses$Gene <- factor(TFses$Gene, levels = c("PFK1","ENO2","TPI1","FBA1","GPM1","TDH3"))
+TFses <- data.frame(rbind(PFK1, ENO2, TPI1, FBA1, GPM1, TDH3, PGK1, PFK2, ENO1))
+TFses$Gene <- c("PFK1","ENO2","TPI1","FBA1","GPM1","TDH3","PGK1","PFK2","ENO1")
+TFses$Gene <- factor(TFses$Gene)
 colnames(TFses) <- c(0,20,50,85,135,"Gene")
 TFsesm <- melt(TFses)
 Tfplot <- cbind(TFsm, sevalues = TFsesm$value)
+Tfplot$Type <- rep("Cis",nrow(Tfplot))
 
-ggplot(data = Tfplot[Tfplot$Gene !="TDH3",], aes(x = 2^variable, y = 2^value, group = Gene)) +
-  #geom_point(aes(colour = Gene), size = 5, alpha = 0.8) +
-  geom_pointrange(aes(ymin = 2^(value - sevalues), ymax = 2^(value + sevalues), color = Gene), size = 1.5) +
-  geom_line(aes(colour = Gene)) +
-  geom_pointrange(data = Tfplot[Tfplot$Gene == "TDH3",], aes(x = 2^variable, y = 2^value, ymin = 2^(value - sevalues), ymax = 2^(value + sevalues)), color = "black", size = 1.5, shape = 1) +
-  geom_hline(yintercept = 1) +
-  geom_abline(intercept = 0, slope = 1) +
-  THEMEMAIN() +
-  xlab("TDH3 Expression Mutant") +
-  ylab("Expression Fold Change\nRelative to Wild Type") +
-  scale_color_manual(values = c("orange","yellowgreen","darkgreen","blue","plum3")) +
-  labs(color = "Gene")
-ggsave("glycoplot2.pdf", plot = last_plot(), path = figdir, width = 8, height = 8)
 
-#Now looking at these expression in GCR1/RAP1 mutants
 TFs <- c(RAP1strains, GCR1strains)
 TFdf <- data.frame(Strain = TFs)
 TFdf$Strain <- as.character(TFdf$Strain)
@@ -387,34 +307,113 @@ for (i in 1:nrow(TFdf)) {
   TFdf[i,"TPI1"] <- get(TFdf[i,"Strain"])["YDR050C","log2FoldChange"]
   TFdf[i,"FBA1"] <- get(TFdf[i,"Strain"])["YKL060C","log2FoldChange"]
   TFdf[i,"GPM1"] <- get(TFdf[i,"Strain"])["YKL152C","log2FoldChange"]
+  TFdf[i,"TDH3"] <- get(TFdf[i,"Strain"])["YGR192C","log2FoldChange"]
+  TFdf[i,"PGK1"] <- get(TFdf[i,"Strain"])["YCR012W","log2FoldChange"]
+  TFdf[i,"ENO1"] <- get(TFdf[i,"Strain"])["YGR254W","log2FoldChange"]
+  TFdf[i,"PFK2"] <- get(TFdf[i,"Strain"])["YMR205C","log2FoldChange"]
 }
+
+TFdft <- t(TFdf[,2:10])
+TFdft <- data.frame(TFdft)
+colnames(TFdft) <- TFdft["TDH3",]
+TFdft$Gene <- rownames(TFdft)
+TFm <- melt(TFdft)
 
 TFses <- data.frame(Strain = TFs)
 TFses$Strain <- as.character(TFses$Strain)
 for (i in 1:nrow(TFses)) {
-  TFses[i,"PFK1se"] <- get(TFses[i,"Strain"])["YGR240C","lfcSE"]
-  TFses[i,"ENO2se"] <- get(TFses[i,"Strain"])["YHR174W","lfcSE"]
-  TFses[i,"TDH3se"] <- get(TFses[i,"Strain"])["YGR192C","lfcSE"]
-  TFses[i,"TPI1se"] <- get(TFses[i,"Strain"])["YDR050C","lfcSE"]
-  TFses[i,"FBA1se"] <- get(TFses[i,"Strain"])["YKL060C","lfcSE"]
-  TFses[i,"GPM1se"] <- get(TFses[i,"Strain"])["YKL152C","lfcSE"]
+  TFses[i,"PFK1"] <- get(TFses[i,"Strain"])["YGR240C","lfcSE"]
+  TFses[i,"ENO2"] <- get(TFses[i,"Strain"])["YHR174W","lfcSE"]
+  TFses[i,"TDH3"] <- get(TFses[i,"Strain"])["YGR192C","lfcSE"]
+  TFses[i,"TPI1"] <- get(TFses[i,"Strain"])["YDR050C","lfcSE"]
+  TFses[i,"FBA1"] <- get(TFses[i,"Strain"])["YKL060C","lfcSE"]
+  TFses[i,"GPM1"] <- get(TFses[i,"Strain"])["YKL152C","lfcSE"]
+  TFses[i,"TDH3"] <- get(TFses[i,"Strain"])["YGR192C","lfcSE"]
+  TFses[i,"PGK1"] <- get(TFses[i,"Strain"])["YCR012W","lfcSE"]
+  TFses[i,"ENO1"] <- get(TFses[i,"Strain"])["YGR254W","lfcSE"]
+  TFses[i,"PFK2"] <- get(TFses[i,"Strain"])["YMR205C","lfcSE"]
 }
-TFplot2 <- inner_join(TFdf, TFses, by = "Strain")
-TFplot2$TFID <- c(rep("RAP1",4), rep("GCR1",5))
 
-ggplot(data = TFplot2, aes(x = 2^TDH3, y = 2^PFK1)) +
-  geom_pointrange(aes(x = 2^TDH3, y = 2^PFK1, ymin = 2^(PFK1 - PFK1se), ymax = 2^(PFK1 + PFK1se), shape = TFID),color = "orange", size = 1.5) +
-  geom_pointrange(aes(x = 2^TDH3, y = 2^ENO2, ymin = 2^(ENO2 - ENO2se), ymax = 2^(ENO2 + ENO2se), shape = TFID),color = "yellowgreen", size = 1.5) +
-  geom_pointrange(aes(x = 2^TDH3, y = 2^TPI1, ymin = 2^(TPI1 - TPI1se), ymax = 2^(TPI1 + TPI1se), shape = TFID),color = "darkgreen", size = 1.5) +
-  geom_pointrange(aes(x = 2^TDH3, y = 2^FBA1, ymin = 2^(FBA1 - FBA1se), ymax = 2^(FBA1 + FBA1se), shape = TFID),color = "blue", size = 1.5) +
-  geom_pointrange(aes(x = 2^TDH3, y = 2^GPM1, ymin = 2^(GPM1 - GPM1se), ymax = 2^(GPM1 + GPM1se), shape = TFID),color = "plum3", size = 1.5) +
-  scale_shape_manual(values = c(2,15)) +
-  geom_abline(intercept = 0, slope = 1) +
-  geom_vline(xintercept = 1) +
-  geom_hline(yintercept = 1) +
+TFsedft <- t(TFses[,2:10])
+TFsedft <- data.frame(TFsedft)
+TFsedft$Gene <- rownames(TFsedft)
+TFsemelt <- melt(TFsedft)
+
+Tfplot3 <- cbind(TFm, sevalues = TFsemelt$value)
+Tfplot3$Type <- rep("Trans",nrow(Tfplot3))
+
+Plottogether <- rbind(Tfplot, Tfplot3)
+Plottogether$variable <- as.numeric(as.character(Plottogether$variable))
+#Adding info on which strains are from RAP1, GCR1, or TDH3 mutants (they are currently in order)
+Plottogether$Mutant <- c(rep("TDH3", 45), rep("RAP1",36), rep("GCR1",45))
+
+
+ggplot(data = Plottogether[Plottogether$Type == "Cis" & Plottogether$Gene %in% c("PFK1","PFK2"),], aes(x = 2^variable, y = 2^value, group = Gene)) +
+  geom_pointrange(aes(ymin = 2^(value - sevalues), ymax = 2^(value + sevalues), color = Gene), size = 1.5) +
   THEMEMAIN() +
-  theme(legend.position = c(0.2,0.8), legend.title = element_text(size = 20)) + 
-  labs(shape = "Mutant") +
-  ylab("Expression Fold Change\nRelative to Wild Type") +
-  xlab("TDH3 Expression\nin RAP1/GCR1 mutants")
-ggsave("glycoinTFs2.pdf", plot = last_plot(), path = figdir, width = 6, height = 8)
+  xlab("TDH3 Expression Level") +
+  ylab("Expression Fold Change\n(Relative to Wild Type)") +
+  geom_line(aes(colour = Gene)) +
+  geom_hline(yintercept = 1) +
+  geom_pointrange(data = Plottogether[Plottogether$Type == "Trans" & Plottogether$Gene %in% c("PFK1","PFK2"),], aes(ymin = 2^(value - sevalues), ymax = 2^(value + sevalues), color = Gene, shape = Mutant), size = 1.5) +
+  scale_shape_manual(values = c(2,15)) +
+  labs(color = "Gene") +
+  scale_color_manual(values = c("grey","deepskyblue3")) +
+  theme(plot.margin = unit(c(0,0,0,0),"cm"))
+ggsave("PFKs.pdf", plot = last_plot(), path = figdir, width = 6, height = 6)
+
+ggplot(data = Plottogether[Plottogether$Type == "Cis" & Plottogether$Gene %in% c("FBA1","TPI1"),], aes(x = 2^variable, y = 2^value, group = Gene)) +
+  geom_pointrange(aes(ymin = 2^(value - sevalues), ymax = 2^(value + sevalues), color = Gene), size = 1.5) +
+  THEMEMAIN() +
+  xlab("TDH3 Expression Level") +
+  ylab("Expression Fold Change\n(Relative to Wild Type)") +
+  geom_line(aes(colour = Gene)) +
+  geom_hline(yintercept = 1) +
+  geom_pointrange(data = Plottogether[Plottogether$Type == "Trans" & Plottogether$Gene %in% c("FBA1","TPI1"),], aes(ymin = 2^(value - sevalues), ymax = 2^(value + sevalues), color = Gene, shape = Mutant), size = 1.5) + #shape = TF
+  scale_shape_manual(values = c(2,15)) +
+  labs(color = "Gene") +#shape = "TF"
+  scale_color_manual(values = c("darkgrey","lightgrey")) +
+  theme(plot.margin = unit(c(0,0,0,0),"cm"))
+ggsave("FBATIP.pdf", plot = last_plot(), path = figdir, width = 6, height = 6)
+
+ggplot(data = Plottogether[Plottogether$Type == "Cis" & Plottogether$Gene %in% c("PGK1"),], aes(x = 2^variable, y = 2^value, group = Gene)) +
+  geom_pointrange(aes(ymin = 2^(value - sevalues), ymax = 2^(value + sevalues), color = Gene), size = 1.5) +
+  THEMEMAIN() +
+  xlab("TDH3 Expression Level") +
+  ylab("Expression Fold Change\n(Relative to Wild Type)") +
+  geom_line(aes(colour = Gene)) +
+  geom_hline(yintercept = 1) +
+  geom_pointrange(data = Plottogether[Plottogether$Type == "Trans" & Plottogether$Gene %in% c("PGK1"),], aes(ymin = 2^(value - sevalues), ymax = 2^(value + sevalues), color = Gene, shape = Mutant), size = 1.5) + #shape = TF
+  scale_shape_manual(values = c(2,15)) +
+  labs(color = "Gene") +#shape = "TF"
+  scale_color_manual(values = c("deepskyblue4")) +
+  theme(plot.margin = unit(c(0,0,0,0),"cm"))
+ggsave("PGK.pdf", plot = last_plot(), path = figdir, width = 6, height = 6)
+
+ggplot(data = Plottogether[Plottogether$Type == "Cis" & Plottogether$Gene %in% c("GPM1"),], aes(x = 2^variable, y = 2^value, group = Gene)) +
+  geom_pointrange(aes(ymin = 2^(value - sevalues), ymax = 2^(value + sevalues), color = Gene), size = 1.5) +
+  THEMEMAIN() +
+  xlab("TDH3 Expression Level") +
+  ylab("Expression Fold Change\n(Relative to Wild Type)") +
+  geom_line(aes(colour = Gene)) +
+  geom_hline(yintercept = 1) +
+  geom_pointrange(data = Plottogether[Plottogether$Type == "Trans" & Plottogether$Gene %in% c("GPM1"),], aes(ymin = 2^(value - sevalues), ymax = 2^(value + sevalues), color = Gene, shape = Mutant), size = 1.5) + #shape = TF
+  scale_shape_manual(values = c(2,15)) +
+  labs(color = "Gene") +#shape = "TF"
+  scale_color_manual(values = c("darkgrey")) +
+  theme(plot.margin = unit(c(0,0,0,0),"cm"))
+ggsave("GPM.pdf", plot = last_plot(), path = figdir, width = 6, height = 6)
+
+ggplot(data = Plottogether[Plottogether$Type == "Cis" & Plottogether$Gene %in% c("ENO1","ENO2"),], aes(x = 2^variable, y = 2^value, group = Gene)) +
+  geom_pointrange(aes(ymin = 2^(value - sevalues), ymax = 2^(value + sevalues), color = Gene), size = 1.5) +
+  THEMEMAIN() +
+  xlab("TDH3 Expression Level") +
+  ylab("Expression Fold Change\n(Relative to Wild Type)") +
+  geom_line(aes(colour = Gene)) +
+  geom_hline(yintercept = 1) +
+  geom_pointrange(data = Plottogether[Plottogether$Type == "Trans" & Plottogether$Gene %in% c("ENO1","ENO2"),], aes(ymin = 2^(value - sevalues), ymax = 2^(value + sevalues), color = Gene, shape = Mutant), size = 1.5) + #shape = TF
+  scale_shape_manual(values = c(2,15)) +
+  labs(color = "Gene") +#shape = "TF"
+  scale_color_manual(values = c("deepskyblue3","grey")) +
+  theme(plot.margin = unit(c(0,0,0,0),"cm"))
+ggsave("ENOs.pdf", plot = last_plot(), path = figdir, width = 6, height = 6)
