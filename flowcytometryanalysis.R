@@ -1,5 +1,5 @@
 #####################################
-##Data analysis and figure generation for flow cytometry data contained in "Active compensation 
+##Data analysis and figure generation for flow cytometry data contained in "Active compensation
 #for changes in TDH3 expression mediated by direct regulators of TDH3 in Saccharomyces cerevisiae"
 #Vande Zande et al, 2024
 ####################################
@@ -138,32 +138,47 @@ Strains <- left_join(Strains, Wellkey, by = "Strain")
 min(fsApply(Singlets, nrow)) #16844
 Singlets <- transform(Singlets, 'logB2.A' = log10(`B2.A`), 'logFSC.A' = log10(`FSC.A`))
 Singlets <- transform(Singlets, 'NormFluor' = `logB2.A`/`logFSC.A`)
+Singlets <- transform(Singlets, 'logV5.A' = log10(`V5.A`))
+Singlets <- transform(Singlets, 'NormFluorV5' = `logV5.A`/`logFSC.A`)
+
 #Just want to pull out medians to try doing stats on those
 for (i in 1:nrow(Strains)) {
-  Strains[i,"Median"] <- median(exprs(Singlets[[i]])[,"NormFluor"], na.rm = TRUE)
+  Strains[i,"MedianB2"] <- median(exprs(Singlets[[i]])[,"NormFluorB2"], na.rm = TRUE)
+  Strains[i,"MedianV5"] <- median(exprs(Singlets[[i]])[,"NormFluorV5"], na.rm = TRUE)
 }
 
-t.test(Strains[Strains$Strain == "3824","Median"], Strains[Strains$Strain == "3324","Median"], alternative = c("greater")) #WT, pval = 8.7e-06, FC = 1.013
-t.test(Strains[Strains$Strain == "3998","Median"], Strains[Strains$Strain == "3990","Median"], alternative = c("greater")) #GCR1.1mut, pval = 0.7841, FC = 0.9982367
-t.test(Strains[Strains$Strain == "4000","Median"], Strains[Strains$Strain == "3992","Median"], alternative = c("greater")) #GCR1.1mut2, pval = 0.00013, FC = 1.047
-t.test(Strains[Strains$Strain == "3999","Median"], Strains[Strains$Strain == "3991","Median"], alternative = c("greater")) #GCR1.2mut, pval = 0.00067, FC = 1.013
-t.test(Strains[Strains$Strain == "3997","Median"], Strains[Strains$Strain == "3989","Median"], alternative = c("greater")) #RAP1mut, pval = 0.014, FC = 1.01
+t.test(Strains[Strains$Strain == "3824","MedianB2"], Strains[Strains$Strain == "3324","MedianB2"], alternative = c("greater")) #WT, pval = 8.7e-06, FC = 1.013
+t.test(Strains[Strains$Strain == "3998","MedianB2"], Strains[Strains$Strain == "3990","MedianB2"], alternative = c("greater")) #GCR1.1mut, pval = 0.7841, FC = 0.9982367
+t.test(Strains[Strains$Strain == "4000","MedianB2"], Strains[Strains$Strain == "3992","MedianB2"], alternative = c("greater")) #GCR1.1mut2, pval = 0.00013, FC = 1.047
+t.test(Strains[Strains$Strain == "3999","MedianB2"], Strains[Strains$Strain == "3991","MedianB2"], alternative = c("greater")) #GCR1.2mut, pval = 0.00067, FC = 1.013
+t.test(Strains[Strains$Strain == "3997","MedianB2"], Strains[Strains$Strain == "3989","MedianB2"], alternative = c("greater")) #RAP1mut, pval = 0.014, FC = 1.01
 
-t.test(Strains[Strains$Strain == "3876","Median"], Strains[Strains$Strain == "3761","Median"], alternative = c("greater")) #WT, p-value = 5.17e-06, FC = 1.086
-t.test(Strains[Strains$Strain == "4087","Median"], Strains[Strains$Strain == "4085","Median"], alternative = c("greater")) #GCRabol,p-value = 0.1802, FC = 1.0054
-t.test(Strains[Strains$Strain == "4086","Median"], Strains[Strains$Strain == "4084","Median"], alternative = c("greater")) #RAP1mut, p-value 0.027, FC = 1.0060
+t.test(Strains[Strains$Strain == "3876","MedianB2"], Strains[Strains$Strain == "3761","MedianB2"], alternative = c("greater")) #WT, p-value = 5.17e-06, FC = 1.086
+t.test(Strains[Strains$Strain == "4087","MedianB2"], Strains[Strains$Strain == "4085","MedianB2"], alternative = c("greater")) #GCRabol,p-value = 0.1802, FC = 1.0054
+t.test(Strains[Strains$Strain == "4086","MedianB2"], Strains[Strains$Strain == "4084","MedianB2"], alternative = c("greater")) #RAP1mut, p-value 0.027, FC = 1.0060
 
-t.test(Strains[Strains$Strain == "3857","Median"], Strains[Strains$Strain == "3733","Median"], alternative = c("greater")) #p-value = 7.13e-06, FC = 1.087
+t.test(Strains[Strains$Strain == "3857","MedianV5"], Strains[Strains$Strain == "3733","MedianV5"], alternative = c("greater")) #p-value = 2.23e-07, FC = 1.141
 
 i <- 1
 x <- as.data.frame(exprs(Singlets[[i]]))
-Events <- c(sample(x$NormFluor, size = 15000, replace = FALSE))
+Events <- c(sample(x$NormFluorB2, size = 15000, replace = FALSE))
 Strain <- rep(Strains[i,"Strain"], 15000)
 PlotDF <- data.frame("Events" = Events, "Strain" = Strain)
 
 for (i in 2:length(Singlets)) {
   x <- as.data.frame(exprs(Singlets[[i]]))
-  Events <- c(sample(x$NormFluor, size = 15000, replace = FALSE))
+  Events <- c(sample(x$NormFluorB2, size = 15000, replace = FALSE))
+  Strain <- rep(Strains[i,"Strain"], 15000)
+  DF <- data.frame(Events = Events, Strain = Strain)
+  PlotDF <- rbind(PlotDF, DF)
+}
+
+#Getting the V5 values for the two CFP strains
+PlotDF <- PlotDF[!PlotDF$Strain %in% c("3857","3733"),]
+
+for (i in c(2,5,22,25,42,45,62,65)) {
+  x <- as.data.frame(exprs(Singlets[[i]]))
+  Events <- c(sample(x$NormFluorV5, size = 15000, replace = FALSE))
   Strain <- rep(Strains[i,"Strain"], 15000)
   DF <- data.frame(Events = Events, Strain = Strain)
   PlotDF <- rbind(PlotDF, DF)
@@ -180,7 +195,7 @@ Strains$Promgeno <- factor(Strains$Promgeno, levels = c("WT","GCR1.1mut","GCR1.1
 ggplot(data = Boxplotmelt[Boxplotmelt$Reporter == "ptdh3:YFP" & Boxplotmelt$Strain != "3872",], aes(x = TDH3geno, y = Events)) +
   geom_violin(fill = "grey") +
   #stat_summary(fun.y = "median", geom = "point") +
-  geom_point(data = Strains[Strains$Reporter == "ptdh3:YFP" & Strains$Strain != "3872",], aes(x = TDH3geno, y = Median)) +
+  geom_point(data = Strains[Strains$Reporter == "ptdh3:YFP" & Strains$Strain != "3872",], aes(x = TDH3geno, y = MedianB2)) +
   facet_grid(~ Promgeno) +
   THEMEMAIN() +
   theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
@@ -199,7 +214,7 @@ t.test(Boxplotmelt[Boxplotmelt$Strain == "3997","Events"], Boxplotmelt[Boxplotme
 ggplot(data = Boxplotmelt[Boxplotmelt$Reporter == "ptdh2:YFP",], aes(x = TDH3geno, y = Events)) +
   geom_violin(fill = "#003f5a") +
   #stat_summary(fun.y = "median", geom = "point") +
-  geom_point(data = Strains[Strains$Reporter == "ptdh2:YFP",], aes(x = TDH3geno, y = Median), color = "white") +
+  geom_point(data = Strains[Strains$Reporter == "ptdh2:YFP",], aes(x = TDH3geno, y = MedianB2), color = "white") +
   facet_grid(~ Promgeno) +
   THEMEMAIN() +
   theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
@@ -215,7 +230,7 @@ t.test(Boxplotmelt[Boxplotmelt$Strain == "4086","Events"], Boxplotmelt[Boxplotme
 ggplot(data = Boxplotmelt[Boxplotmelt$Reporter == "ptdh2::CFP",], aes(x = TDH3geno, y = Events)) +
   geom_violin(fill = "#003f5a") +
   #stat_summary(fun.y = "median", geom = "point") +
-  geom_point(data = Strains[Strains$Reporter == "ptdh2::CFP",], aes(x = TDH3geno, y = Median), color = "white") +
+  geom_point(data = Strains[Strains$Reporter == "ptdh2::CFP",], aes(x = TDH3geno, y = MedianV5), color = "white") +
   THEMEMAIN() +
   theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
   ylab("Fluorescence \n (arbitary units)") +
@@ -223,5 +238,4 @@ ggplot(data = Boxplotmelt[Boxplotmelt$Reporter == "ptdh2::CFP",], aes(x = TDH3ge
 ggsave("TDH2CFPreporter.pdf", plot = last_plot(), path = fig.dir, width = 5, height = 7)
 
 #T-tests for these guys
-t.test(Boxplotmelt[Boxplotmelt$Strain == "3857","Events"], Boxplotmelt[Boxplotmelt$Strain == "3733","Events"], alternative = c("greater")) #p-value < 2.2e-16, FC = 1.089647
-
+t.test(Boxplotmelt[Boxplotmelt$Strain == "3857","Events"], Boxplotmelt[Boxplotmelt$Strain == "3733","Events"], alternative = c("greater")) #p-value < 2.2e-16, FC = 1.141662
